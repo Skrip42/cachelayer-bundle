@@ -141,6 +141,7 @@ add annotation to target service methods:
     }
 ```
 it uses the factory machinery, what breaks autowire controller parametrs
+
 you must explicitly specify the constructor parameters or use ```/** @required */``` setters
 
 ## additional features:
