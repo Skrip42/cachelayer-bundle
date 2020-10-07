@@ -1,0 +1,21 @@
+{
+    "name": "skrip42/cachelayer-bundle",
+    "type": "symfony-bundle",
+    "description": "Symfony cache layer bundle",
+    "keywords": [],
+    "homepage": "https://github.com/Skrip42/cachelayer-bundle",
+    "version": "v1.0",
+    "license": "MIT",
+    "minimum-stability": "dev",
+    "authors": [
+        {
+            "name": "skrip",
+            "email": "skrip42@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Skrip42\\Bundle\\CacheLayerBundle\\":""
+        }
+    }
+}
