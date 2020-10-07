@@ -143,8 +143,10 @@ add annotation to target service methods:
 it uses the factory machinery, what breaks autowire controller parametrs
 you must explicitly specify the constructor parameters or use ```/** @required */``` setters
 
-##additional features:
-###cache chain
+## additional features:
+
+### cache chain
+
 you can add multiple cache annotations, caches will be executed in the specified order
 ```php
     /**
@@ -156,7 +158,7 @@ you can add multiple cache annotations, caches will be executed in the specified
         .....
 ```
 
-###custom attribute
+### custom attribute
 you can define additional attributes
 that will be passed to all cache methods
 ```php
@@ -173,7 +175,7 @@ that will be passed to all cache methods
         .....
 ```
 
-###conditional execution
+### conditional execution
 You can specify a condition under which eesh will be executed
 ```php
     /**
@@ -186,7 +188,7 @@ You can specify a condition under which eesh will be executed
      */
     public function foo(bool $nocache = false)
 ```
-###cache cleaner
+### cache cleaner
 You can specify the method for clearing the cache
 ```php
     /**
