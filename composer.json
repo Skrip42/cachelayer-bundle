@@ -4,9 +4,16 @@
     "description": "Symfony cache layer bundle",
     "keywords": [],
     "homepage": "https://github.com/Skrip42/cachelayer-bundle",
-    "version": "v1.1.0",
+    "version": "v1.1.1",
     "license": "MIT",
     "minimum-stability": "dev",
+    "require": {
+        "php": "^7.1",
+        "doctrine/common": "^2.7",
+        "symfony/config": "^4.2|^5.0",
+        "ocramius/proxy-manager": "^2.0",
+        "symfony/http-kernel": "^4.3|^5.0",
+        "symfony/dependency-injection": "^4.1|^5.0",
     "authors": [
         {
             "name": "skrip",
