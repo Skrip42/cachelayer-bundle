@@ -43,7 +43,7 @@ class RedisCache implements CacheInterface
             $this->getKey($instance, $method, $params)
         );
     }
-    
+
     /**
      * Get value from cache
      *
@@ -64,7 +64,7 @@ class RedisCache implements CacheInterface
             $this->getKey($instance, $method, $params)
         ));
     }
-    
+
     /**
      * Set data to cache
      *
@@ -140,9 +140,6 @@ add annotation to target service methods:
         //do something
     }
 ```
-it uses the factory machinery, what breaks autowire controller parametrs
-
-you must explicitly specify the constructor parameters or use ```/** @required */``` setters
 
 ## additional features:
 
@@ -176,8 +173,24 @@ that will be passed to all cache methods
         .....
 ```
 
+### ignored parameters
+you can specify parameters that will be ignored during caching
+```php
+    /**
+     * @Cache(
+     *      RedisCache::class,
+     *      ignore_params = {
+     *          "param"
+     *      }
+     * )
+     */
+    public function foo(bool $param) // the cache for foo (three) is the same as for foo (false)
+    {
+        .....
+```
+
 ### conditional execution
-You can specify a condition under which eesh will be executed
+You can specify a condition under which cache will be executed
 ```php
     /**
      * @Cache(
@@ -195,8 +208,44 @@ You can specify the method for clearing the cache
     /**
      * @Cache(
      *      RedisCache::class,
-     *      action = "clear" //cache chear method will be called when foo is called
+     *      attribute = {
+     *          "target" = "getData"
+     *      }
+     *      action = "clear" //cache chear method will be called when setData is called
      * )
      */
-    public function foo(...)
+    public function setData(...)
+```
+### cache actualize
+You can specify the method for actualize the cache
+```php
+    /**
+     * @Cache(
+     *      RedisCache::class,
+     *      action = "actualize" //cache chear method will be called when setData is called
+     * )
+     */
+    public function setData(...)
+```
+
+### conditional clear and actualize
+You can specify a condition under which cache overide action
+```php
+    /**
+     * @Cache(
+     *      RedisCache::class,
+     *      actualize_condition = { //cache willbe actualize when foo is called eitch $actualize = true parameters
+     *          "actualize" = true
+     *      },
+     *      clear_condition = { //cache chear method will be called when foo is called witch $clear = true parameters
+     *          "clear" = true
+     *      },
+     *      ignore_params = {
+     *          "clear", "actualize"
+     *      }
+     * )
+     */
+    public function foo(bool $clear, bool $actualize)
+    {
+        ......
 ```

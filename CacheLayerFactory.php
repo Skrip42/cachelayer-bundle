@@ -60,11 +60,13 @@ class CacheLayerFactory
                         );
                     }
                     $methods[$methodName][] = [
-                        'action'            => $cache->action,
-                        'cacher'            => $cacher,
-                        'attr'              => $cache->attribute,
-                        'condition'         => $cache->condition,
-                        //'paramTemplate'     => $paramTemplate
+                        'action'              => $cache->action,
+                        'cacher'              => $cacher,
+                        'attr'                => $cache->attribute,
+                        'condition'           => $cache->condition,
+                        'actualize_condition' => $cache->actualize_condition,
+                        'clear_condition'     => $cache->clear_condition,
+                        'ignore_params'       => $cache->ignore_params
                     ];
                 }
             }
@@ -96,44 +98,53 @@ class CacheLayerFactory
         ) use (
             $data
         ) {
+            foreach ($data as &$dat) {
+                $dat = $this->prepareCacheData($dat, $params);
+            }
             foreach ($data as $dat) {
-                if ($dat['action'] != 'clear') {
+                if (!in_array($dat['action'], ['clear'])) {
                     continue;
                 }
                 if (!$this->checkCondition($dat, $params)) {
                     continue;
                 }
-                $dat['cacher']->clear($instance, $method, $params, $dat['attr']);
+                $dat['cacher']->clear(
+                    $instance,
+                    $method,
+                    $this->prepareParams($dat, $params),
+                    $dat['attr']
+                );
             }
             for ($i = 0; $i < count($data); $i++) {
-                if ($data[$i]['action'] != 'cache') {
+                if (!in_array($data[$i]['action'], ['cache'])) {
                     continue;
                 }
                 if (!$this->checkCondition($data[$i], $params)) {
                     continue;
                 }
+                $preparedParams = $this->prepareParams($data[$i], $params);
                 if ($data[$i]['cacher']->has(
                     $instance,
                     $method,
-                    $params,
+                    $preparedParams,
                     $data[$i]['attr']
                 )) {
                     $returnEarly = true;
                     $return = $data[$i]['cacher']->get(
                         $instance,
                         $method,
-                        $params,
+                        $preparedParams,
                         $data[$i]['attr']
                     );
                     $i--;
                     while ($i >= 0) { //fill cache chain
-                        if ($data[$i]['action'] == 'cache'
+                        if (in_array($data[$i]['action'], ['cache', 'actualize'])
                             && $this->checkCondition($data[$i], $params)
                         ) {
                             $data[$i]['cacher']->set(
                                 $instance,
                                 $method,
-                                $params,
+                                $preparedParams,
                                 $return,
                                 $data[$i]['attr']
                             );
@@ -158,8 +169,11 @@ class CacheLayerFactory
         ) use (
             $data
         ) {
+            foreach ($data as &$dat) {
+                $dat = $this->prepareCacheData($dat, $params);
+            }
             foreach ($data as $dat) {
-                if ($dat['action'] != 'cache') {
+                if (!in_array($dat['action'], ['cache', 'actualize'])) {
                     continue;
                 }
                 if (!$this->checkCondition($dat, $params)) {
@@ -168,7 +182,7 @@ class CacheLayerFactory
                 $dat['cacher']->set(
                     $instance,
                     $method,
-                    $params,
+                    $this->prepareParams($dat, $params),
                     $returnValue,
                     $dat['attr']
                 );
@@ -176,12 +190,6 @@ class CacheLayerFactory
         };
     }
 
-    /**
-     * @param mixed $data
-     * @param mixed $params
-     *
-     * @return null
-     */
     private function checkCondition($data, $params)
     {
         if (!empty($data['condition'])) {
@@ -191,14 +199,36 @@ class CacheLayerFactory
                 }
             }
         }
-        if (!empty($data['reverse_condition'])) {
-            foreach ($data['reverse_condition'] as $param => $value) {
+        return true;
+    }
+
+    private function prepareCacheData($data, $params)
+    {
+        if (!empty($data['clear_condition'])) {
+            foreach ($data['clear_condition'] as $param => $value) {
                 if (isset($params[$param]) && $params[$param] == $value) {
-                    return false;
+                    $data['action'] = 'clear';
+                    return $data;
                 }
             }
         }
-        return true;
+        if (!empty($data['actualize_condition'])) {
+            foreach ($data['actualize_condition'] as $param => $value) {
+                if (isset($params[$param]) && $params[$param] == $value) {
+                    $data['action'] = 'actualize';
+                    return $data;
+                }
+            }
+        }
+        return $data;
+    }
+
+    private function prepareParams($data, $params)
+    {
+        foreach ($data['ignore_params'] as $ip) {
+            unset($params[$ip]);
+        }
+        return $params;
     }
 
     private function createPreCallArray(

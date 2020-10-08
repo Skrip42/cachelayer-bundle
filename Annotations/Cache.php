@@ -13,7 +13,8 @@ class Cache
     public $class;
     public $attribute = [];
     public $condition = [];
-    public $reverse_condition = [];
-    public $action    = 'cache';
-    //public $value;
+    public $actualize_condition = [];
+    public $clear_condition     = [];
+    public $action = 'cache';
+    public $ignore_params = [];
 }
