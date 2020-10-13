@@ -102,7 +102,8 @@ class RedisCache implements CacheInterface
         array $params,
         array $attr
     ) {
-        $pattern = get_class($instance) . '::' . $attr['target'] . '*';
+        $pattern = get_class($instance) . '::' . $method . '*';
+        $pattern = str_replace('\\', '\\\\', $pattern); //escape '\'
         $keys = $this->client->keys($pattern);
         $this->client->del($keys);
     }
@@ -216,6 +217,22 @@ You can specify the method for clearing the cache
      */
     public function setData(...)
 ```
+if you want to clear the cache of another method (for example for setter method),
+you can add attribute with the method name and modify toy cache class like this:
+```php
+    public function clear(
+        $instance,
+        string $method,
+        array $params,
+        array $attr
+    ) {
+        if (!empty($attr['target'])) {
+            $pattern = get_class($instance) . '::' . $attr['target'] . '*';
+        } else {
+            $pattern = get_class($instance) . '::' . $method . '*';
+        }
+        ...
+```
 ### cache actualize
 You can specify the method for actualize the cache
 ```php
@@ -248,4 +265,33 @@ You can specify a condition under which cache overide action
     public function foo(bool $clear, bool $actualize)
     {
         ......
+```
+
+### CacheManager and CacheAccessor
+CacheAccessor allow you to direct control for cache of a specific service
+
+To get CacheAccessor, use static CacheManager:
+```php
+use Skrip42\Bundle\CacheLayerBundle\CacheManager;
+use App\Services\SomeClass;
+
+......
+
+$cacheAccessor = CacheManager::getBy(SomeClass::class); //return CacheAccessor instance
+```
+:warning: **if you use no singleton service**, you can get CacheAccessor only for last service instance;
+
+CacheAccessor has the signature:
+```php
+class CacheAccessor
+{
+    has(string $methodName, array $params = [], array $attr = []) : bool;
+    find(string $methodName, array $params = [], array $attr = []) : array; //return array of CacheInterface witch the value is founded;
+    get(string $methodName, array $params = [], array $attr = []);
+    set(string $methodName, $data, $params = [], array $attr = []);
+    clear(string $methodName, $params = [], array $attr = []);
+
+    getLayer(string $cacheServiceName) : CacheAccessor; //return cache accessor for specific cache class (get RedisCache only for example)
+    getCacheMap() : array; //return cache map schem for current object
+}
 ```
