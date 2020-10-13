@@ -32,6 +32,19 @@ class CacheLayerFactory
         $this->container = $container;
     }
 
+    public function create(
+        string $className,
+        array $arguments
+    ) {
+        $methods = $this->getMethods($className);
+        $proxy = $this->factory->createProxy(
+            new $className(...$arguments),
+            $this->createPreCallArray($methods),
+            $this->createPostCallArray($methods)
+        );
+        return $proxy;
+    }
+
     private function getMethods(string $className)
     {
         $methods = [];
@@ -74,19 +87,6 @@ class CacheLayerFactory
         return $methods;
     }
 
-    public function create(
-        string $className,
-        array $arguments
-    ) {
-        $methods = $this->getMethods($className);
-        $proxy = $this->factory->createProxy(
-            new $className(...$arguments),
-            $this->createPreCallArray($methods),
-            $this->createPostCallArray($methods)
-        );
-        return $proxy;
-    }
-
     private function createPreCallFunction($data)
     {
         return function (
@@ -98,8 +98,8 @@ class CacheLayerFactory
         ) use (
             $data
         ) {
-            foreach ($data as &$dat) {
-                $dat = $this->prepareCacheData($dat, $params);
+            for ($i = 0; $i < count($data); $i++) {
+                $data[$i] = $this->prepareCacheData($data[$i], $params);
             }
             foreach ($data as $dat) {
                 if (!in_array($dat['action'], ['clear'])) {
@@ -169,8 +169,8 @@ class CacheLayerFactory
         ) use (
             $data
         ) {
-            foreach ($data as &$dat) {
-                $dat = $this->prepareCacheData($dat, $params);
+            for ($i = 0; $i < count($data); $i++) {
+                $data[$i] = $this->prepareCacheData($data[$i], $params);
             }
             foreach ($data as $dat) {
                 if (!in_array($dat['action'], ['cache', 'actualize'])) {
