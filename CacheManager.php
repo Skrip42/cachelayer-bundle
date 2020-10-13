@@ -10,8 +10,12 @@ class CacheManager
         static::$store[$className] = $accessor;
     }
 
-    public static function getBy(string $className) : CacheAccessor
+    public static function getBy(string $className) : ?CacheAccessor
     {
-        return static::$store[$className];
+        foreach (static::$store as $accessor) {
+            if ($accessor->isStatisfiedBy($className)) {
+                return $accessor;
+            }
+        }
     }
 }

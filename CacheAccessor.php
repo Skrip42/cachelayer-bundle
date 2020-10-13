@@ -15,6 +15,11 @@ class CacheAccessor
         $this->cacheMap = $cacheMap;
     }
 
+    public function isStatisfiedBy(string $className) : bool
+    {
+        return $this->instance instanceof $className;
+    }
+
     public function getLayer(string $cacheClassName) : CacheAccessor
     {
         $cacheMap = [];
