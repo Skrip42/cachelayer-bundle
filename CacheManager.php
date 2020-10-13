@@ -17,5 +17,6 @@ class CacheManager
                 return $accessor;
             }
         }
+        return null;
     }
 }

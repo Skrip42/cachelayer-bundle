@@ -268,7 +268,7 @@ You can specify a condition under which cache overide action
 ```
 
 ### CacheManager and CacheAccessor
-CacheAccessor allow you to direct control for cache of a specific service
+CacheAccessor allows you to direct control for cache of a specific service
 
 To get CacheAccessor, use static CacheManager:
 ```php
