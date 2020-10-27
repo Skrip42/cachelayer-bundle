@@ -6,7 +6,7 @@ use Doctrine\Common\Annotations\Annotation;
 /**
  * @Annotation
  *
- * @Target({"METHOD"})
+ * @Target({"METHOD", "ANNOTATION"})
  */
 class Cache
 {
@@ -15,6 +15,10 @@ class Cache
     public $condition = [];
     public $actualize_condition = [];
     public $clear_condition     = [];
+
+    /**
+     * @Enum({"cache", "clear", "actualize"})
+     */
     public $action = 'cache';
     public $ignore_params = [];
 }

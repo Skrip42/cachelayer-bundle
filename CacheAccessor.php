@@ -25,7 +25,7 @@ class CacheAccessor
         $cacheMap = [];
         foreach ($this->cacheMap as $method => $caches) {
             foreach ($caches as $cache) {
-                if (get_class($cache) !== $cacheClassName) {
+                if (get_class($cache['cacher']) !== $cacheClassName) {
                     continue;
                 }
                 if (empty($cacheMap[$method])) {
@@ -51,7 +51,8 @@ class CacheAccessor
             throw new Exception('method is undefined in the current layer');
         }
         foreach ($this->cacheMap[$methodName] as $cache) {
-            if ($cache->has($this->instance, $methodName, $params, $attr)) {
+            $cAttr = array_merge($cache['attr'], $attr);
+            if ($cache['cacher']->has($this->instance, $methodName, $params, $cAttr)) {
                 return true;
             }
         }
@@ -68,8 +69,9 @@ class CacheAccessor
         }
         $result = [];
         foreach ($this->cacheMap[$methodName] as $cache) {
-            if ($cache->has($this->instance, $methodName, $params, $attr)) {
-                $result[] = get_class($cache);
+            $cAttr = array_merge($cache['attr'], $attr);
+            if ($cache['cacher']->has($this->instance, $methodName, $params, $cAttr)) {
+                $result[] = get_class($cache['cacher']);
             }
         }
         return $result;
@@ -84,8 +86,9 @@ class CacheAccessor
             throw new Exception('method is undefined in the current layer');
         }
         foreach ($this->cacheMap[$methodName] as $cache) {
-            if ($cache->has($this->instance, $methodName, $params, $attr)) {
-                return $cache->get($this->instance, $methodName, $params, $attr);
+            $cAttr = array_merge($cache['attr'], $attr);
+            if ($cache['cacher']->has($this->instance, $methodName, $params, $cAttr)) {
+                return $cache['cacher']->get($this->instance, $methodName, $params, $attr);
             }
         }
         return null;
@@ -101,7 +104,8 @@ class CacheAccessor
             throw new Exception('method is undefined in the current layer');
         }
         foreach ($this->cacheMap[$methodName] as $cache) {
-            $cache->set($htis->instance, $methodName, $params, $data, $attr);
+            $cAttr = array_merge($cache['attr'], $attr);
+            $cache['cacher']->set($this->instance, $methodName, $params, $data, $cAttr);
         }
     }
 
@@ -114,7 +118,8 @@ class CacheAccessor
             throw new Exception('method is undefined in the current layer');
         }
         foreach ($this->cacheMap[$methodName] as $cache) {
-            $cache->clear($this->instance, $methodName, $params, $attr);
+            $cAttr = array_merge($cache['attr'], $attr);
+            $cache['cacher']->clear($this->instance, $methodName, $params, $cAttr);
         }
     }
 }

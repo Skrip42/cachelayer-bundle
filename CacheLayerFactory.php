@@ -5,6 +5,7 @@ use ProxyManager\Factory\AccessInterceptorValueHolderFactory as Factory;
 use Doctrine\Common\Annotations\Reader;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Skrip42\Bundle\CacheLayerBundle\Annotations\Cache;
+use Skrip42\Bundle\CacheLayerBundle\Annotations\AdditionalCache;
 use Skrip42\Bundle\CacheLayerBundle\Exceptions\CacheLayerException;
 use Skrip42\Bundle\CacheLayerBundle\CacheManager;
 use Skrip42\Bundle\CacheLayerBundle\CacheAccessor;
@@ -37,23 +38,46 @@ class CacheLayerFactory
         string $className,
         array $arguments
     ) {
+        $additional = $this->getAddritionalCaches($className);
         $methods = $this->getMethods($className);
+        $methods = array_merge($additional, $methods);
         $instance = new $className(...$arguments);
         foreach ($methods as $method => $caches) {
             $cacheMap[$method] = [];
             foreach ($caches as $cache) {
-                $cacheMap[$method][] = $cache['cacher'];
+                $cacheMap[$method][] = [
+                    'cacher'    => $cache['cacher'],
+                    'attr' => $cache['attr']
+                ];
             }
         }
         $cacheAccessor = new CacheAccessor($instance, $cacheMap);
         CacheManager::addAccessor(get_class($instance), $cacheAccessor);
-        //dump($cacheAccessor);
         $proxy = $this->factory->createProxy(
             $instance,
             $this->createPreCallArray($methods),
             $this->createPostCallArray($methods)
         );
         return $proxy;
+    }
+
+    private function getAddritionalCaches(string $className)
+    {
+        $reflectionClass = new ReflectionClass($className);
+        $caches = $this->annotationReader->getClassAnnotations(
+            $reflectionClass,
+            AdditionalCache::class
+        );
+        $additional = [];
+        if (!empty($caches)) {
+            foreach ($caches as $additionalCaches) {
+                $additional[$additionalCaches->name] = [];
+                foreach ($additionalCaches->layers as $cache) {
+                    $additional[$additionalCaches->name][] = $this->prepareCacheAnnotation($cache);
+                }
+            }
+        }
+        return $additional;
     }
 
     private function getMethods(string $className)
@@ -70,32 +94,37 @@ class CacheLayerFactory
                 $methodName = $reflectionMethod->name;
                 $methods[$methodName] = [];
                 foreach ($caches as $cache) {
-                    if (!in_array($cache->action, ['cache', 'clear'])) {
-                        throw new CacheLayerException(
-                            $cache->action . ' is not valid action '
-                                . '("cache", "clear")'
-                        );
-                    }
-                    $cacher = $this->container->get($cache->class);
-                    if (!$cacher instanceof CacheInterface) {
-                        throw new CacheLayerException(
-                            get_class($cacher) . ' is not '
-                            . CacheInterface::class . ' implementation;'
-                        );
-                    }
-                    $methods[$methodName][] = [
-                        'action'              => $cache->action,
-                        'cacher'              => $cacher,
-                        'attr'                => $cache->attribute,
-                        'condition'           => $cache->condition,
-                        'actualize_condition' => $cache->actualize_condition,
-                        'clear_condition'     => $cache->clear_condition,
-                        'ignore_params'       => $cache->ignore_params
-                    ];
+                    $methods[$methodName][] = $this->prepareCacheAnnotation($cache);
                 }
             }
         }
         return $methods;
+    }
+
+    private function prepareCacheAnnotation($cache)
+    {
+        if (!in_array($cache->action, ['cache', 'clear'])) {
+            throw new CacheLayerException(
+                $cache->action . ' is not valid action '
+                    . '("cache", "clear")'
+            );
+        }
+        $cacher = $this->container->get($cache->class);
+        if (!$cacher instanceof CacheInterface) {
+            throw new CacheLayerException(
+                get_class($cacher) . ' is not '
+                . CacheInterface::class . ' implementation;'
+            );
+        }
+        return [
+            'action'              => $cache->action,
+            'cacher'              => $cacher,
+            'attr'                => $cache->attribute,
+            'condition'           => $cache->condition,
+            'actualize_condition' => $cache->actualize_condition,
+            'clear_condition'     => $cache->clear_condition,
+            'ignore_params'       => $cache->ignore_params
+        ];
     }
 
     private function createPreCallFunction($data)
