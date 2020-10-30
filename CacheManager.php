@@ -1,9 +1,13 @@
 <?php
 namespace Skrip42\Bundle\CacheLayerBundle;
 
+use Skrip42\Bundle\CacheLayerBundle\CacheMapper;
+use Skrip42\Bundle\CacheLayerBundle\Exceptions\CacheLayerException as Exception;
+
 class CacheManager
 {
     private static $store;
+    private static $map;
 
     public static function addAccessor(string $className, CacheAccessor $accessor)
     {
@@ -12,11 +16,17 @@ class CacheManager
 
     public static function getBy(string $className) : ?CacheAccessor
     {
-        foreach (static::$store as $accessor) {
-            if ($accessor->isStatisfiedBy($className)) {
-                return $accessor;
-            }
+        global $kernel;
+        if (empty(static::$map)) {
+            static::$map = $kernel->getContainer()->get(CacheMapper::class);
         }
-        return null;
+        if (!static::$map->isset($className)) {
+            throw new Exception($className . ' is not cacheble service');
+        }
+        $className = static::$map->get($className);
+        if (empty(static::$store[$className])) {
+            $kernel->getContainer()->get($className); //init depend service
+        }
+        return static::$store[$className];
     }
 }

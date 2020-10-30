@@ -36,11 +36,10 @@ class CacheLayerFactory
 
     public function create(
         string $className,
-        array $arguments
+        array  $methods,
+        array  $arguments
     ) {
-        $additional = $this->getAddritionalCaches($className);
-        $methods = $this->getMethods($className);
-        $methods = array_merge($additional, $methods);
+        $methods = $this->restoreCacher($methods);
         $instance = new $className(...$arguments);
         foreach ($methods as $method => $caches) {
             $cacheMap[$method] = [];
@@ -61,70 +60,14 @@ class CacheLayerFactory
         return $proxy;
     }
 
-    private function getAddritionalCaches(string $className)
+    private function restoreCacher(array $methods) : array
     {
-        $reflectionClass = new ReflectionClass($className);
-        $caches = $this->annotationReader->getClassAnnotations(
-            $reflectionClass,
-            AdditionalCache::class
-        );
-        $additional = [];
-        if (!empty($caches)) {
-            foreach ($caches as $additionalCaches) {
-                $additional[$additionalCaches->name] = [];
-                foreach ($additionalCaches->layers as $cache) {
-                    $additional[$additionalCaches->name][] = $this->prepareCacheAnnotation($cache);
-                }
-            }
-        }
-        return $additional;
-    }
-
-    private function getMethods(string $className)
-    {
-        $methods = [];
-        $reflectionClass = new ReflectionClass($className);
-        $reflectionMethods = $reflectionClass->getMethods();
-        foreach ($reflectionMethods as $reflectionMethod) {
-            $caches = $this->annotationReader->getMethodAnnotations(
-                $reflectionMethod,
-                Cache::class
-            );
-            if (!empty($caches)) {
-                $methodName = $reflectionMethod->name;
-                $methods[$methodName] = [];
-                foreach ($caches as $cache) {
-                    $methods[$methodName][] = $this->prepareCacheAnnotation($cache);
-                }
+        foreach ($methods as &$method) {
+            foreach ($method as &$layer) {
+                $layer['cacher'] = $this->container->get($layer['cacher']);
             }
         }
         return $methods;
-    }
-
-    private function prepareCacheAnnotation($cache)
-    {
-        if (!in_array($cache->action, ['cache', 'clear'])) {
-            throw new CacheLayerException(
-                $cache->action . ' is not valid action '
-                    . '("cache", "clear")'
-            );
-        }
-        $cacher = $this->container->get($cache->class);
-        if (!$cacher instanceof CacheInterface) {
-            throw new CacheLayerException(
-                get_class($cacher) . ' is not '
-                . CacheInterface::class . ' implementation;'
-            );
-        }
-        return [
-            'action'              => $cache->action,
-            'cacher'              => $cacher,
-            'attr'                => $cache->attribute,
-            'condition'           => $cache->condition,
-            'actualize_condition' => $cache->actualize_condition,
-            'clear_condition'     => $cache->clear_condition,
-            'ignore_params'       => $cache->ignore_params
-        ];
     }
 
     private function createPreCallFunction($data)
