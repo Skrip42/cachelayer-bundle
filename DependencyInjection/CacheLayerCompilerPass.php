@@ -114,7 +114,8 @@ class CacheLayerCompilerPass implements CompilerPassInterface
             'condition'           => $cache->condition,
             'actualize_condition' => $cache->actualize_condition,
             'clear_condition'     => $cache->clear_condition,
-            'ignore_params'       => $cache->ignore_params
+            'ignore_params'       => $cache->ignore_params,
+            'recache_method'      => $cache->recache_method
         ];
     }
 }

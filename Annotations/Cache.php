@@ -21,4 +21,5 @@ class Cache
      */
     public $action = 'cache';
     public $ignore_params = [];
+    public $recache_method = '';
 }

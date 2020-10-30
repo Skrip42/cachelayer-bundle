@@ -120,6 +120,10 @@ class CacheAccessor
         foreach ($this->cacheMap[$methodName] as $cache) {
             $cAttr = array_merge($cache['attr'], $attr);
             $cache['cacher']->clear($this->instance, $methodName, $params, $cAttr);
+            if (!empty($cache['recache_method'])) {
+                $recacheMethod = $cache['recache_method'];
+                $this->instance->$recacheMethod(...$params);
+            }
         }
     }
 }

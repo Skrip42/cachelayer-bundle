@@ -45,8 +45,9 @@ class CacheLayerFactory
             $cacheMap[$method] = [];
             foreach ($caches as $cache) {
                 $cacheMap[$method][] = [
-                    'cacher'    => $cache['cacher'],
-                    'attr' => $cache['attr']
+                    'cacher'         => $cache['cacher'],
+                    'attr'           => $cache['attr'],
+                    'recache_method' => $cache['recache_method']
                 ];
             }
         }
@@ -97,6 +98,10 @@ class CacheLayerFactory
                     $this->prepareParams($dat, $params),
                     $dat['attr']
                 );
+                if (!empty($dat['recache_method'])) {
+                    $recacheMethod = $dat['recache_method'];
+                    $instance->$recacheMethod(...$params);
+                }
             }
             for ($i = 0; $i < count($data); $i++) {
                 if (!in_array($data[$i]['action'], ['cache'])) {

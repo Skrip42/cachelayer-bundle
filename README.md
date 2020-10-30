@@ -267,6 +267,23 @@ You can specify a condition under which cache overide action
         ......
 ```
 
+### recache method
+You can specify recache method thet will be called automatically after clearing the cache
+```php
+```php
+    /**
+     * @Cache(
+     *      RedisCache::class,
+     *      attribute = {
+     *          "target" = "getData"
+     *      }
+     *      action = "clear",
+     *      recache_method = "recacheData" // recacheData(...) will be called after cache clear
+     * )
+     */
+    public function setData(...)
+```
+
 ### CacheManager and CacheAccessor
 CacheAccessor allows you to direct control for cache of a specific service
 
@@ -294,4 +311,21 @@ class CacheAccessor
     getLayer(string $cacheServiceName) : CacheAccessor; //return cache accessor for specific cache class (get RedisCache only for example)
     getCacheMap() : array; //return cache map schem for current object
 }
+```
+
+### AdditionalCache
+You can define cache without class method and work with it through the CacheManager
+
+```php
+/**
+ * @AdditionalCache(
+ *      "additionalCacheName", //virtual method name
+ *      layers = {             //cache layers
+ *          @Cache(RedisCache::class, attribute={"ttl" = 86400}) //just @Cache annotation
+ *      }
+ * )
+ */
+class SomeClass
+{
+....
 ```
