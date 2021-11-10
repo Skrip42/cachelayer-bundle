@@ -4,12 +4,6 @@ namespace Skrip42\Bundle\CacheLayerBundle;
 use ProxyManager\Factory\AccessInterceptorValueHolderFactory as Factory;
 use Doctrine\Common\Annotations\Reader;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Skrip42\Bundle\CacheLayerBundle\Annotations\Cache;
-use Skrip42\Bundle\CacheLayerBundle\Annotations\AdditionalCache;
-use Skrip42\Bundle\CacheLayerBundle\Exceptions\CacheLayerException;
-use Skrip42\Bundle\CacheLayerBundle\CacheManager;
-use Skrip42\Bundle\CacheLayerBundle\CacheAccessor;
-use ReflectionClass;
 
 class CacheLayerFactory
 {
