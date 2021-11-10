@@ -1,7 +1,6 @@
 <?php
 namespace Skrip42\Bundle\CacheLayerBundle;
 
-use Skrip42\Bundle\CacheLayerBundle\CacheMapper;
 use Skrip42\Bundle\CacheLayerBundle\Exceptions\CacheLayerException as Exception;
 
 class CacheManager

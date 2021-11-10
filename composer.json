@@ -4,7 +4,7 @@
     "description": "Symfony cache layer bundle",
     "keywords": [],
     "homepage": "https://github.com/Skrip42/cachelayer-bundle",
-    "version": "v1.2.7",
+    "version": "v1.2.8",
     "license": "MIT",
     "minimum-stability": "dev",
     "require": {
@@ -25,5 +25,8 @@
         "psr-4": {
             "Skrip42\\Bundle\\CacheLayerBundle\\":""
         }
+    },
+    "require-dev": {
+        "doctrine/annotations": "1.14.x-dev"
     }
 }

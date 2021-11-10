@@ -1,6 +1,8 @@
 <?php
 namespace Skrip42\Bundle\CacheLayerBundle\DependencyInjection;
 
+use Skrip42\Bundle\CacheLayerBundle\Annotations\AdditionalCache;
+use Skrip42\Bundle\CacheLayerBundle\Annotations\Cache;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
@@ -56,10 +58,13 @@ class CacheLayerCompilerPass implements CompilerPassInterface
         $reflectionClass = new ReflectionClass($className);
         $reflectionMethods = $reflectionClass->getMethods();
         foreach ($reflectionMethods as $reflectionMethod) {
-            $caches = $reader->getMethodAnnotations(
-                $reflectionMethod,
-                Cache::class
-            );
+            $caches = [];
+            $annotations = $reader->getMethodAnnotations($reflectionMethod);
+            foreach ($annotations as $annotation) {
+                if ($annotation instanceof Cache) {
+                    $caches[] = $annotation;
+                }
+            }
             if (!empty($caches)) {
                 $methodName = $reflectionMethod->name;
                 $methods[$methodName] = [];
@@ -73,12 +78,15 @@ class CacheLayerCompilerPass implements CompilerPassInterface
 
     private function getAdditionalCaches(string $className)
     {
+        $caches = [];
         $reader = new AnnotationReader();
         $reflectionClass = new ReflectionClass($className);
-        $caches = $reader->getClassAnnotations(
-            $reflectionClass,
-            AdditionalCache::class
-        );
+        $annotations = $reader->getClassAnnotations($reflectionClass);
+        foreach ($annotations as $annotation) {
+            if ($annotation instanceof AdditionalCache) {
+                $caches[] = $annotation;
+            }
+        }
         $additional = [];
         if (!empty($caches)) {
             foreach ($caches as $additionalCaches) {
@@ -102,7 +110,7 @@ class CacheLayerCompilerPass implements CompilerPassInterface
         $cacheInterfaces = class_implements($cache->class);
         if (empty($cacheInterfaces[CacheInterface::class])) {
             throw new CacheLayerException(
-                $cacher . ' is not '
+                $cache->class . ' is not '
                 . CacheInterface::class . ' implementation;'
             );
         }
